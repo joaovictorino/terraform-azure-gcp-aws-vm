@@ -7,48 +7,48 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_resource_group" "rg-aula-vm" {
-  name     = "rg-aula-vm"
+resource "azurerm_resource_group" "rg-sample" {
+  name     = "rg-sample"
   location = "eastus"
 
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
-resource "azurerm_virtual_network" "vnet-aula-vm" {
-  name                = "vnet-aula-vm"
+resource "azurerm_virtual_network" "vnet-sample" {
+  name                = "vnet-sample"
   address_space       = ["10.0.0.0/16"]
   location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg-aula-vm.name
+  resource_group_name = azurerm_resource_group.rg-sample.name
 
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
-resource "azurerm_subnet" "sub-aula-vm" {
-  name                 = "mySubnet"
-  resource_group_name  = azurerm_resource_group.rg-aula-vm.name
-  virtual_network_name = azurerm_virtual_network.vnet-aula-vm.name
+resource "azurerm_subnet" "sub-sample" {
+  name                 = "sub-sample"
+  resource_group_name  = azurerm_resource_group.rg-sample.name
+  virtual_network_name = azurerm_virtual_network.vnet-sample.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_public_ip" "pip-aula-vm" {
-  name                = "pip-aula-vm"
+resource "azurerm_public_ip" "pip-sample" {
+  name                = "pip-sample"
   location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg-aula-vm.name
+  resource_group_name = azurerm_resource_group.rg-sample.name
   allocation_method   = "Static"
 
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
-resource "azurerm_network_security_group" "nsg-aula-vm" {
-  name                = "myNetworkSecurityGroup"
+resource "azurerm_network_security_group" "nsg-sample" {
+  name                = "nsg-sample"
   location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg-aula-vm.name
+  resource_group_name = azurerm_resource_group.rg-sample.name
 
   security_rule {
     name                       = "SSH"
@@ -63,82 +63,66 @@ resource "azurerm_network_security_group" "nsg-aula-vm" {
   }
 
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
-resource "azurerm_network_interface" "nic-aula-vm" {
-  name                = "nic-aula-vm"
+resource "azurerm_network_interface" "nic-sample" {
+  name                = "nic-sample"
   location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg-aula-vm.name
+  resource_group_name = azurerm_resource_group.rg-sample.name
 
   ip_configuration {
-    name                          = "myNicConfiguration"
-    subnet_id                     = azurerm_subnet.sub-aula-vm.id
+    name                          = "nic-sample-config"
+    subnet_id                     = azurerm_subnet.sub-sample.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.pip-aula-vm.id
+    public_ip_address_id          = azurerm_public_ip.pip-sample.id
   }
 
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nic-nsg-aula-vm" {
-  network_interface_id      = azurerm_network_interface.nic-aula-vm.id
-  network_security_group_id = azurerm_network_security_group.nsg-aula-vm.id
+resource "azurerm_network_interface_security_group_association" "nic-nsg-sample" {
+  network_interface_id      = azurerm_network_interface.nic-sample.id
+  network_security_group_id = azurerm_network_security_group.nsg-sample.id
 }
 
-resource "azurerm_storage_account" "mystorageaccount" {
-  name                     = "storageaccountmyvm"
-  resource_group_name      = azurerm_resource_group.rg-aula-vm.name
-  location                 = "eastus"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    "aula" = "vm"
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "vm-aula-vm" {
-  name                  = "vm-aula-vm"
+resource "azurerm_linux_virtual_machine" "vm-sample" {
+  name                  = "vm-sample"
   location              = "eastus"
-  resource_group_name   = azurerm_resource_group.rg-aula-vm.name
-  network_interface_ids = [azurerm_network_interface.nic-aula-vm.id]
+  resource_group_name   = azurerm_resource_group.rg-sample.name
+  network_interface_ids = [azurerm_network_interface.nic-sample.id]
   size                  = "Standard_DS1_v2"
 
   os_disk {
-    name                 = "myOsDisk"
+    name                 = "disk-sample"
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
   computer_name                   = "myvm"
-  admin_username                  = "azureuser"
+  admin_username                  = "ubuntu"
   disable_password_authentication = true
 
   admin_ssh_key {
-    username   = "azureuser"
+    username   = "ubuntu"
     public_key = file("id_rsa.pub")
   }
 
-  boot_diagnostics {
-    storage_account_uri = azurerm_storage_account.mystorageaccount.primary_blob_endpoint
-  }
-
   tags = {
-    "aula" = "vm"
+    project = "aula"
   }
 }
 
 output "public_ip_azure" {
-  value = azurerm_public_ip.pip-aula-vm.ip_address
+  value = azurerm_public_ip.pip-sample.ip_address
 }

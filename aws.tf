@@ -2,7 +2,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_vpc" "vpc-aula" {
+resource "aws_vpc" "vpc-sample" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
@@ -10,22 +10,22 @@ resource "aws_vpc" "vpc-aula" {
   }
 }
 
-resource "aws_internet_gateway" "igw-aula" {
-  vpc_id = aws_vpc.vpc-aula.id
+resource "aws_internet_gateway" "igw-sample" {
+  vpc_id = aws_vpc.vpc-sample.id
 
   tags = {
     project = "aula"
   }
 }
 
-resource "aws_route" "rt-aula" {
-  route_table_id         = aws_vpc.vpc-aula.main_route_table_id
+resource "aws_route" "rt-sample" {
+  route_table_id         = aws_vpc.vpc-sample.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw-aula.id
+  gateway_id             = aws_internet_gateway.igw-sample.id
 }
 
-resource "aws_subnet" "sub-aula" {
-  vpc_id                  = aws_vpc.vpc-aula.id
+resource "aws_subnet" "sub-sample" {
+  vpc_id                  = aws_vpc.vpc-sample.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
 
@@ -34,9 +34,9 @@ resource "aws_subnet" "sub-aula" {
   }
 }
 
-resource "aws_security_group" "sg-aula" {
-  name   = "sg_aula"
-  vpc_id = aws_vpc.vpc-aula.id
+resource "aws_security_group" "sg-sample" {
+  name   = "sg_sample"
+  vpc_id = aws_vpc.vpc-sample.id
 
   ingress {
     from_port   = 22
@@ -64,8 +64,8 @@ resource "aws_security_group" "sg-aula" {
   }
 }
 
-resource "aws_key_pair" "key-aula" {
-  key_name   = "key-aula"
+resource "aws_key_pair" "key-sample" {
+  key_name   = "key-sample"
   public_key = file("id_rsa.pub")
 
   tags = {
@@ -73,12 +73,12 @@ resource "aws_key_pair" "key-aula" {
   }
 }
 
-resource "aws_instance" "vm-aula" {
+resource "aws_instance" "vm-sample" {
   instance_type          = "t2.micro"
-  ami                    = "ami-04751c628226b9b59"
-  key_name               = aws_key_pair.key-aula.id
-  vpc_security_group_ids = [aws_security_group.sg-aula.id]
-  subnet_id              = aws_subnet.sub-aula.id
+  ami                    = "ami-053b0d53c279acc90"
+  key_name               = aws_key_pair.key-sample.id
+  vpc_security_group_ids = [aws_security_group.sg-sample.id]
+  subnet_id              = aws_subnet.sub-sample.id
 
   tags = {
     project = "aula"
@@ -86,5 +86,5 @@ resource "aws_instance" "vm-aula" {
 }
 
 output "public_ip_aws" {
-  value = aws_instance.vm-aula.public_ip
+  value = aws_instance.vm-sample.public_ip
 }
