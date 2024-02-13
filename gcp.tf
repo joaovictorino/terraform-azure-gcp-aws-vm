@@ -1,7 +1,6 @@
 provider "google" {
   project = "teste-sample-388301"
   region  = "us-central1"
-  zone    = "us-central1-a"
 }
 
 resource "google_project_service" "cloud_resource_manager" {
